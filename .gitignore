@@ -1,0 +1,49 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editor and local tool state
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python and local script output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local caches and temporary exports
+tmp/
+temp/
+cache/
+.cache/
+*.tmp
+*.log
+
+# Large generated or review-only outputs
+exports/
+generated/
+reports/generated/
+pdf-output/
+audit-live-downloads/
+audit-test-downloads/
+
+# Keep intentional documentation and manifests tracked
+!README.md
+!AUDIT_SCOPE.md
+!METHODOLOGY.md
+!DATA_DICTIONARY.md
+!EVIDENCE_MANIFEST.md
+!CHAIN_OF_CUSTODY.md
