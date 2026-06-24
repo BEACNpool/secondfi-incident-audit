@@ -62,7 +62,11 @@ If a PDF is regenerated, do not overwrite custody history. Add a new manifest en
 
 | Date UTC | Evidence ID | Action | Actor / Role | Hash Before | Hash After | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| `TBD` | `TBD` | `collected / derived / reviewed / published / superseded` | `TBD` | `TBD` | `TBD` | `TBD` |
+| `2026-06-24T15:31:00Z` | `EVID-0005` | `derived` | `Codex / analyst` | `N/A` | `f7383d1824ab5262102916743704ee9bf1afaaa08db154f7c052eef3c72c59d2` | Enriched all 240 old-wave txs with exact recipient outputs and sponsor input UTxOs via Blockfrost tx UTxO endpoint. |
+| `2026-06-24T15:37:48Z` | `EVID-0006` | `derived` | `Codex / analyst` | `N/A` | `956f192e4321995ada909e075ab39976c1e363722e0495058adf347a25e84fa2` | Initial local visualization dataset with 3,187 mapped events and 2,729 included source IDs. |
+| `2026-06-24T15:39:00Z` | `repository` | `published` | `Codex / publisher` | `N/A` | `45ea990` | Created public GitHub repository `TheRefreshCNFT/secondfi-incident-audit` and published initial documentation/evidence package. |
+| `2026-06-24T15:42:00Z` | `EVID-0010,EVID-0011,EVID-0012` | `reviewed` | `Codex / reviewer` | `N/A` | `3311a1222206ea336fd48dde6fd0c0e5a43dcef61cff4842a520d32d93a3cf39; a38c389074d0f59fc20a53ec25f50d7972294878a211290d4f5dafd26f947c35; fe44dba11cd9f9d6e189dd28ed377cf0d73eed2ec1432e74888dd23725eac329` | Local browser/PDF verification passed for stake key, address, transaction hash, and second-wave stake-key searches. |
+| `2026-06-24T15:46:10Z` | `EVID-0006,EVID-0007` | `superseded / derived` | `Codex / analyst` | `956f192e4321995ada909e075ab39976c1e363722e0495058adf347a25e84fa2` | `ed685e89bd5fc453d497cb0c2a728f0ee679501054af56f268d66541f1006045` | Public repo reproduction regenerated the visualization dataset from `evidence/source`; row counts matched and generated timestamp changed. |
 
 ## Public Release Review
 

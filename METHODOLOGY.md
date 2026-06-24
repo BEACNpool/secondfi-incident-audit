@@ -51,6 +51,17 @@ Transaction flow reconstruction should map relevant source addresses, destinatio
 
 Flow summaries should include enough supporting identifiers for a reviewer to trace the path back to Cardano mainnet records.
 
+The public PDF audit trail uses stable local references to avoid unreadable tables:
+
+- `S###` source wallet/source ID refs.
+- `TX###` transaction refs.
+- `R###` receiving destination refs.
+- `F###` fee sponsor input refs.
+- `M###` downstream movement refs.
+- `O###` output refs.
+
+The verification register maps those refs back to full transaction hashes, addresses, stake keys, and Cardanoscan URLs.
+
 ## Impact Dataset Generation
 
 Impact datasets should document:
@@ -89,7 +100,8 @@ PDF audit trail outputs should be generated from reviewed static datasets and sh
 - Report title and generation timestamp.
 - Dataset identifiers and checksums.
 - Scope and limitation notes.
-- Summary findings with confidence language.
-- Appendices or references to source evidence.
+- Summary findings.
+- A chronological audit trail from searched subject to direct drain tx, concrete receiving output, downstream movements, and downstream outputs where present.
+- Source wallet, receiving destination, fee sponsor, movement, output, and verification registers.
 
 PDF outputs should be listed in `EVIDENCE_MANIFEST.md` with their hash, generation method, and reviewer. If a PDF is regenerated, the new file should receive a new manifest entry rather than replacing custody history.

@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 import collections
+import calendar
 import json
 import math
 import time
 from pathlib import Path
 
 
-ROOT = Path(__file__).parent
-OUT = ROOT / "incident-viz" / "data" / "incident-viz-data.json"
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE_DIR = ROOT / "evidence" / "source"
+EVIDENCE_DIR = ROOT / "evidence"
+OUT = ROOT / "site" / "data" / "incident-viz-data.json"
 
 
 def load(name):
-    return json.loads((ROOT / name).read_text())
+    source_path = SOURCE_DIR / name
+    if source_path.exists():
+        return json.loads(source_path.read_text())
+    return json.loads((EVIDENCE_DIR / name).read_text())
 
 
 def short(value, front=10, back=8):
@@ -23,7 +29,7 @@ def short(value, front=10, back=8):
 
 
 def iso_to_ts(value):
-    return int(time.mktime(time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")))
+    return int(calendar.timegm(time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")))
 
 
 def bucket_time(value, minutes=5):
@@ -59,11 +65,22 @@ def add_entity(entities, key, label, kind, role, confidence, address=None, stake
     }
 
 
-def event_from_old(tx, old):
-    recipient_names = []
+def load_audit_enrichment():
+    path = EVIDENCE_DIR / "audit_trail_enrichment.json"
+    if not path.exists():
+        return {"txs": {}}
+    return load("audit_trail_enrichment.json")
+
+
+def event_from_old(tx, old, enrichment):
+    enriched = enrichment.get("txs", {}).get(tx["tx_hash"], {})
+    recipient_outputs = enriched.get("recipientOutputs") or []
+    sponsor_inputs = enriched.get("sponsorInputs") or []
+    recipient_names = [name for name in old["recipient_addresses"]]
     recipient_addresses = set(old["recipient_addresses"].values())
-    for name, address in old["recipient_addresses"].items():
-        recipient_names.append(name)
+    if recipient_outputs:
+        recipient_names = [out.get("recipientName") for out in recipient_outputs if out.get("recipientName")]
+        recipient_addresses = {out.get("address") for out in recipient_outputs if out.get("address")}
     return {
         "id": tx["tx_hash"],
         "cluster": "old_fee_sponsored",
@@ -77,7 +94,7 @@ def event_from_old(tx, old):
         "sourceCount": len(tx["source_ids"]),
         "from": "victim_sources_old",
         "to": "old_destination_group",
-        "toLabel": "old known destinations",
+        "toLabel": "old known destinations" if len(recipient_outputs) != 1 else recipient_names[0].replace("_", " / "),
         "ada": round(tx.get("to_recip_ada", 0.0), 6),
         "feeAda": round(tx.get("fee_ada", 0.0), 6),
         "assetRows": len(tx.get("asset_rows") or []),
@@ -85,10 +102,23 @@ def event_from_old(tx, old):
         "kind": "incoming",
         "recipientNames": recipient_names,
         "recipientCount": len(recipient_addresses),
+        "recipientOutputs": recipient_outputs,
+        "sponsorInputs": sponsor_inputs,
+        "feeSponsorEntity": "near_intents_fee_sponsor",
+        "trailQuality": "exact_recipient_output" if recipient_outputs else "grouped_recipient_only",
     }
 
 
-def event_from_new(tx):
+def event_from_new(tx, new):
+    recipient_output = {
+        "ada": round(tx.get("to_central_ada", 0.0), 6),
+        "address": new["central_address"],
+        "stake": new["central_stake"],
+        "assetRows": len(tx.get("asset_rows") or []),
+        "entityId": "new_william_qa",
+        "outputIndex": None,
+        "recipientName": "$william-qa",
+    }
     return {
         "id": tx["tx_hash"],
         "cluster": "new_william_direct",
@@ -108,6 +138,12 @@ def event_from_new(tx):
         "assetRows": len(tx.get("asset_rows") or []),
         "confidence": 100 if tx["time"] >= "2026-06-23T03:35:58Z" else 40,
         "kind": "incoming",
+        "recipientNames": ["$william-qa"],
+        "recipientCount": 1,
+        "recipientOutputs": [recipient_output],
+        "sponsorInputs": [],
+        "feeSponsorEntity": None,
+        "trailQuality": "known_single_destination",
     }
 
 
@@ -152,7 +188,8 @@ def known_outgoing_events(flows):
                 "assetRows": item.get("asset_input_rows", 0),
                 "confidence": 95 if known_to else 80,
                 "kind": "outgoing",
-                "outputs": outputs[:6],
+                "outputs": outputs,
+                "trailQuality": "known_wallet_outputs" if outputs else "known_wallet_outflow_without_outputs",
             }
         )
     return events
@@ -193,9 +230,10 @@ def summarize_buckets(events):
 def main():
     old = load("old_cluster_report_v2.json")["old"]
     new = load("new_cluster_report.json")["new"]
+    enrichment = load_audit_enrichment()
     impacted = load("impacted_wallets.json")
     review = impacted.get("review_only", [])
-    flows_path = ROOT / "known_wallet_flows.json"
+    flows_path = SOURCE_DIR / "known_wallet_flows.json"
     flows = load("known_wallet_flows.json") if flows_path.exists() else {"flows": [], "balances": {}}
 
     entities = {}
@@ -213,8 +251,22 @@ def main():
     add_entity(entities, "victim_sources_old", "old victim/source wallets", "source_group", "179 old-cluster source/reward IDs", 100)
     add_entity(entities, "victim_sources_new", "new victim/source wallets", "source_group", "2,568 new main-burst source IDs", 100)
     add_entity(entities, "old_destination_group", "old known destination group", "destination_group", "three old known destination wallets", 100)
+    known_stakes = {
+        "A_cybermuna": "stake1u9fg8znea6sqgne8zusu6rl9hwkwt7te2xn3j4pexdjf03g4kw9uq",
+        "B_adanerone": "stake1uywaus7jtqca6d2mek63ql28rrxc9fdxcj8xvrs3m54tvrq4uaarv",
+        "C_555888": "stake1ux9aps8h3zwqpv7802zkyq9kmz85zrfsr90fns2mdtlzjtcm7jj8p",
+    }
     for label, address in old["recipient_addresses"].items():
-        add_entity(entities, f"old_{label}", label.replace("_", " / "), "known_destination", "Old known destination wallet", 100, address=address)
+        add_entity(
+            entities,
+            f"old_{label}",
+            label.replace("_", " / "),
+            "known_destination",
+            "Old known destination wallet",
+            100,
+            address=address,
+            stake=known_stakes.get(label),
+        )
     add_entity(
         entities,
         "old_USDCx_proceeds",
@@ -223,6 +275,7 @@ def main():
         "USDCx-heavy wallet with funds still sitting; possible safety-net holding, control unverified",
         85,
         address="addr1q8nw4dkulh8w5gdst5q87pdq9kkdpvvxpqta37qx6maryrkelj2ugdyg7kyc7xuleagy883fdtxqywym02ty3luptv9qhl98qc",
+        stake="stake1u8vle9wyxjy0tzv0rw0u75zrnc5k4nqz8zdh49jgl7q4kzslrczqz",
     )
     add_entity(
         entities,
@@ -246,9 +299,9 @@ def main():
     )
     add_entity(entities, "external_outgoing", "external / DEX / change outputs", "external", "Observed outgoing outputs from known destinations", 80)
 
-    incoming_old = [event_from_old(tx, old) for tx in old["txs"]]
+    incoming_old = [event_from_old(tx, old, enrichment) for tx in old["txs"]]
     incoming_new = [
-        event_from_new(tx)
+        event_from_new(tx, new)
         for tx in new["txs"]
         if tx["time"] >= "2026-06-23T03:35:58Z"
     ]
@@ -341,6 +394,7 @@ def main():
             {"label": "Cardano app listing for Cardano Treasury Explorer", "url": "https://cardano.org/apps/cardano-treasury-explorer/"},
         ],
     }
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(data, indent=2))
     print(json.dumps({"out": str(OUT), "events": len(events), "wallets": len(wallets), "buckets": len(data["buckets"]), "outgoing": len(out_events)}, indent=2))
 

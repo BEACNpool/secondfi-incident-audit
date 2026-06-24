@@ -7,8 +7,9 @@ import urllib.request
 from pathlib import Path
 
 
-ROOT = Path(__file__).parent
-OUT = ROOT / "audit_trail_enrichment.json"
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE_DIR = ROOT / "evidence" / "source"
+OUT = ROOT / "evidence" / "audit_trail_enrichment.json"
 BLOCKFROST = "https://cardano-mainnet.blockfrost.io/api/v0"
 
 
@@ -20,8 +21,7 @@ def blockfrost_key():
     env = os.environ.get("BLOCKFROST_PROJECT_ID")
     if env:
         return env.strip()
-    path = Path.home() / ".webot" / "credentials" / "blockfrost-mainnet.txt"
-    return path.read_text().strip()
+    raise RuntimeError("Set BLOCKFROST_PROJECT_ID in the environment before refreshing enrichment data.")
 
 
 def fetch_json(url, key, attempts=4):
@@ -46,8 +46,9 @@ def asset_rows(amounts):
 
 
 def main():
-    old = load_json(ROOT / "old_cluster_report_v2.json")["old"]
+    old = load_json(SOURCE_DIR / "old_cluster_report_v2.json")["old"]
     key = blockfrost_key()
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     existing = load_json(OUT) if OUT.exists() else {}
     txs = existing.setdefault("txs", {})
 

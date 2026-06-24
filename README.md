@@ -2,18 +2,25 @@
 
 This repository is a public forensic audit package for the SecondFi incident on Cardano. It is intended to provide a clear, reproducible, and evidence-oriented record of the audit scope, methodology, source data, custody controls, and generated audit trail outputs.
 
-The package is structured for public review. It does not publish private credentials, privileged communications, internal infrastructure details, or any application source code that is not part of the audit record.
+The package is structured for public review. It does not publish private credentials, privileged communications, or internal infrastructure details. Code included here is limited to the audit dataset builder, enrichment script, PDF generator, and verification harness used for the public audit record.
 
 ## Repository Contents
 
-| File | Purpose |
+| Path | Purpose |
 | --- | --- |
 | `README.md` | Public overview and review guidance. |
 | `AUDIT_SCOPE.md` | Defines the audit objectives, included evidence classes, exclusions, and limitations. |
 | `METHODOLOGY.md` | Documents the forensic workflow used to collect, normalize, analyze, and validate evidence. |
 | `DATA_DICTIONARY.md` | Defines expected static datasets, exported tables, common fields, and interpretation notes. |
-| `EVIDENCE_MANIFEST.md` | Inventory template for evidence sources, generated artifacts, hashes, and provenance notes. |
+| `EVIDENCE_MANIFEST.md` | Inventory of evidence sources, generated artifacts, hashes, and provenance notes. |
 | `CHAIN_OF_CUSTODY.md` | Custody procedures for source data, derived datasets, PDF exports, and public release artifacts. |
+| `evidence/source/` | Static source JSON exports used to build the public visualization dataset. |
+| `evidence/audit_trail_enrichment.json` | Blockfrost-enriched old-wave tx output and fee-sponsor input records. |
+| `evidence/incident-viz-data.json` | Published normalized dataset consumed by the public visualization and audit PDFs. |
+| `scripts/` | Reproduction scripts for the enrichment and visualization datasets. |
+| `site/src/` | Public audit/PDF browser code used by the live visualization. |
+| `site/data/` | Site-ready copy of the published normalized dataset. |
+| `verification/` | Browser and PDF download verification harness. |
 | `.gitignore` | Keeps transient files, local caches, and large generated artifacts out of source control by default. |
 
 ## Evidence Sources
@@ -34,6 +41,18 @@ Public claims should be reproducible from the static datasets and source referen
 
 Generated artifacts should be treated as derived outputs. They are useful for review and communication, but they should remain traceable to source evidence.
 
+Current public reproduction path:
+
+```sh
+python3 scripts/build_incident_viz_data.py
+```
+
+Refreshing `evidence/audit_trail_enrichment.json` requires a Blockfrost mainnet key:
+
+```sh
+BLOCKFROST_PROJECT_ID=<project_id> python3 scripts/enrich_audit_trails.py
+```
+
 ## Static Dataset Limits
 
 Static datasets represent a point-in-time snapshot. They may not reflect later chain activity, re-indexed provider data, corrected labels, or additional incident intelligence collected after export. Public readers should treat static exports as audit evidence for the stated collection window, not as a live monitoring feed.
@@ -42,7 +61,7 @@ Known limits should be recorded in `AUDIT_SCOPE.md` and `EVIDENCE_MANIFEST.md`, 
 
 ## Generated PDF Audit Trail Outputs
 
-The audit package supports generated PDF outputs for public review, archival, and sign-off workflows. PDF reports should include the generation timestamp, source dataset identifiers, reviewer notes, and a checksum recorded in the evidence manifest.
+The audit package supports generated PDF outputs for public review, archival, and sign-off workflows. PDF reports include chronological trail rows, source/destination registers, drain ledgers, fee sponsor rows, downstream movement/output registers, verification references, generation timestamp, and source dataset identifiers.
 
 PDF files are treated as derived records. The underlying data and methodology remain the authoritative basis for forensic conclusions.
 
