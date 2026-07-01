@@ -9,11 +9,14 @@ The package is structured for public review. It does not publish private credent
 | Path | Purpose |
 | --- | --- |
 | `README.md` | Public overview and review guidance. |
+| `INCIDENT_ANALYSIS_AND_REMEDIATION.md` | **Start here.** Consolidated incident summary (root cause, supply chain, fund flow) and remediation recommendations, synthesized from this repo's evidence and the external cross-reference below. |
 | `AUDIT_SCOPE.md` | Defines the audit objectives, included evidence classes, exclusions, and limitations. |
 | `METHODOLOGY.md` | Documents the forensic workflow used to collect, normalize, analyze, and validate evidence. |
 | `DATA_DICTIONARY.md` | Defines expected static datasets, exported tables, common fields, and interpretation notes. |
 | `EVIDENCE_MANIFEST.md` | Inventory of evidence sources, generated artifacts, hashes, and provenance notes. |
 | `CHAIN_OF_CUSTODY.md` | Custody procedures for source data, derived datasets, PDF exports, and public release artifacts. |
+| `CONTESTED_CLUSTER.md` | Records that the intent of the ~129M ADA `new_william_direct` sweep (theft vs. protective rescue) is unresolved from chain data alone. |
+| `SUPPLEMENTAL_FINDINGS.md` | Independent cross-validation: shared funding origin between clusters, key-compromise mechanism confirmation, source-count caveats. |
 | `EXTERNAL_ANALYSIS_TIBANE.md` | Cross-reference of this repo's fund-flow evidence against Tibane Labs' independent root-cause/supply-chain research (Ed25519 signer defect, EMURGO in-house SDK provenance). |
 | `evidence/source/` | Static source JSON exports used to build the public visualization dataset. |
 | `evidence/external/` | Third-party evidence (PDFs, page snapshots, DMCA records) and this repo's own verification checks against primary sources, supporting `EXTERNAL_ANALYSIS_TIBANE.md`. |
