@@ -1,0 +1,342 @@
+Tibane Labs - Solana R&amp;D
+Tibane
+Labs
+Home
+Staking
+Swap
+Tools
+App
+More
+▾
+Docs
+About
+DPRK Screening
+SecondFi Incident
+Memes ↗
+Connect
+Solana
+Forensic analysis · Cardano mainnet · case TIBANE‑2026‑06
+It wasn't
+nonce reuse
+.
+It was
+Ed25519 done wrong
+.
+Between 21–23 June 2026, an attacker drained thousands of wallets created by the SecondFi (formerly
+Yoroi
+) Cardano wallet. Across X and the press the cause is being called “weak randomness” or “nonce reuse.” That framing is wrong — and the truth is worse: the signer computed its Ed25519 nonce off-spec, so a
+single transaction
+is enough to recover the private key.
+Mechanism report
+Supply-chain report
+Share on X
+Investigation 2026-06-25 · all cryptographic claims verified against live on-chain data
+Self-check
+Check if your wallet is affected
+Paste a Cardano payment address (
+addr1…
+). We pull its recent on-chain history from public Cardano chain data and test each signature for the predictable nonce — the cryptography runs entirely in your browser. No keys, no seed phrase; only the public address is sent.
+Check
+Public address only · crypto runs locally · chain data via Koios
+The finding
+Correct Ed25519 (RFC&nbsp;8032) derives each signature's secret nonce
+r
+from a
+per-key secret prefix
+mixed with the message. SecondFi's signing code lost that secret on the way through a stack of wrapper functions — the layer that hands the key to the signer simply never passed it along — so the wallet effectively computed
+r = SHA‑512(M)
+from the transaction body alone. That makes
+r
+public
+and
+key-independent
+— and once the nonce is public, the private key falls straight out of the standard signature equation. No second signature, no statistics, no “reuse.” Every wallet that signed even one transaction with the affected build — live from
+8 June 2026
+— leaked its key the moment it signed.
+01
+Why “nonce reuse” is the wrong label
+The two bugs look alike in the textbook — both leak the key through the nonce
+r
+— but they are operationally very different.
+Nonce reuse is the bug that famously broke the
+PlayStation&nbsp;3
+: Sony signed its firmware with the same fixed ECDSA nonce every time, and in 2010 that let researchers recover the console's master signing key from just two signatures. Ed25519 was designed specifically to make that mistake
+impossible
+— it derives the nonce
+deterministically
+, from a per-key secret combined with the message, so a correct implementation can never repeat or expose it. That guarantee holds perfectly —
+as long as Ed25519 is implemented correctly
+. SecondFi's signer wasn't: it dropped the very secret that makes the scheme safe.
+≈
+Classic nonce reuse
+Requires
+two
+signatures that happen to share the same
+r
+across different messages.
+In
+randomized
+schemes like ECDSA, a faulty RNG repeats the nonce — the PS3 case. Ed25519 is deterministic; there is no RNG to break.
+Recovery is a difference of two equations:
+a = (s₁−s₂)·(H₁−H₂)⁻¹
+.
+An address that signed
+only once
+is generally safe.
+!
+What actually happened
+The nonce omits the
+secret prefix
+entirely:
+r = SHA‑512(M)
+.
+r
+is computable by
+anyone
+from the public transaction body.
+Recovery needs
+one
+signature:
+a = (s−r)·H⁻¹
+.
+An address that ever signed
+once
+is already compromised — forever.
+So while the
+symptom
+(a recoverable key via
+r
+) resembles nonce reuse, the
+defect
+is a specification error in the Ed25519 implementation, not a one-off randomness slip. It is strictly worse, and it cannot be outrun by signing carefully afterwards.
+02
+From spec to single-signature recovery
+For message
+M
+(on Cardano, the blake2b-256 hash of the exact transaction body), base point
+B
+, group order
+L
+, and key pair
+(a, A = a·B)
+.
+RFC 8032 — how it should sign
+r
+= SHA-512(
+prefix
+‖ M) mod L
+# prefix = per-key SECRET
+R
+= r·B
+H
+= SHA-512(R ‖ A ‖ M) mod L
+s
+= (r + H·a) mod L
+Because
+prefix
+is secret and unique per key,
+r
+is unpredictable and never repeats. That secrecy is the entire security argument.
+SecondFi — the bug
+r
+= SHA-512(
+M
+) mod L
+# prefix dropped — r is PUBLIC
+Two consequences follow at once.
+(a)
+r
+is public — anyone recomputes it from the transaction body.
+(b)
+r
+is key-independent — for a given
+M
+,
+every
+affected key emits the identical
+R
+. We observed two distinct victim keys produce the same
+R = 5666e273…
+for one transaction: a ~2
+−255
+event under correct signing.
+The key drops out of one signature
+a
+= (s −
+r
+) · H⁻¹ mod L
+# r now known ⇒ everything is public
+Everything on the right is public, so the private scalar
+a
+is fully determined by a single on-chain signature.
+Detector · no false positives
+SHA-512(M) · B == R
+A signature is affected
+iff
+this holds. It needs only one signature's
+R
+and the message
+M
+— no private key, no second transaction. Run over mainnet, it enumerates every still-exposed SecondFi address and never fires on a correct RFC&nbsp;8032 signature.
+03
+Where the secret was lost
+The signer isn't one function — it's a stack of wrappers (
+Secret → Key → derive/sign → ed25519 → noble
+), and the secret half of the key falls out at one specific boundary. Not in derivation, and not in the nonce routine.
+✓ intact
+1 · Derivation (BIP32-Ed25519)
+Produces the full extended secret
+kL ‖ kR
+. Both halves exist here —
+kL
+is the signing scalar,
+kR
+is the secret nonce-prefix.
+✕ kR lost here
+2 · The key adapter
+Converts the extended secret into the object the signer consumes. It carries
+scalar = kL
+— so addresses and signatures still validate — but
+never assigns
+the prefix.
+kR
+is simply left out.
+adapt(kL ‖ kR) → { scalar:
+kL
+, prefix:
+∅
+, pointBytes: A }
+# kR is never wired in
+— correct
+3 · noble's ed25519 signer
+The nonce routine
+hashDomainToScalar(prefix, M)
+is correct and unchanged — it faithfully hashes whatever prefix it is handed. It is handed an empty one, so
+r = SHA‑512(M)
+. The library isn't the bug; the wiring is.
+The on-chain bytes settle which mistake it was: the nonce is
+SHA‑512(M)
+with
+zero bytes prepended
+— a zero-
+length
+prefix, not a zero-
+valued
+one. That is exactly what an unassigned prefix produces, and it is impossible if
+kR
+were present-but-ignored or present-but-zeroed. The secret was never wired in — not merely mishandled.
+In one sentence: when the wallet adapts a Cardano
+kL ‖ kR
+extended key into noble's signer, it passes
+kL
+as the scalar and leaves the nonce-prefix empty, so
+kR
+never reaches the signature.
+04
+Verified on live mainnet keys
+Proof, not speculation.
+a·B == A
+We recovered victim private scalars from individual historical signatures and confirmed each by regenerating the on-chain public key. The recovered scalar reproduces the published key — definitive proof of compromise. Scalars are retained as forensic evidence only and were never used to build or submit a transaction.
+fingerprint = authorship
+Because only the buggy signer leaves the fingerprint while the attacker signs with a correct signer, the same test separates legitimate activity from attacker activity: the drains are exactly the first
+clean-signed
+spends from keys whose entire prior history is fingerprinted.
+05
+How it reached production
+The deeper story isn't the math — it's governance. The broken signer wasn't a third-party dependency that slipped in; it was EMURGO's own in-house code.
+The signer was EMURGO's own in-house multi-chain SDK — known internally as
+Dullahan
+and published to npm as
+@stashers.io/trantor
+by its original author, a former EMURGO employee. EMURGO's own copyright-takedown filing names the code as its proprietary Dullahan project — a name that appears verbatim in the published source — and the author's counter-filing disputes only its licensing, not its origin. Only one pre-1.0 version (
+0.5.2
+) was ever published, with no publicly known audit and a Catalyst proposal to fund one that was never funded. In SecondFi's June rewrite this SDK
+replaced EMURGO's established Rust signing library
+(
+cardano-serialization-lib
+), which had been signing correctly, and went live on
+8 June 2026
+(build 10.0.3, never publicly tagged) — the day the first predictable-nonce signature appears on-chain.
+~
+The error · developer
+A genuine mistake — a wrong nonce in the signer, with an audit pending (the author's Catalyst proposal sought one).
+The “hack / unfinished” descriptions are the author's own
+post-incident words
+; the package itself carried no such warning.
+Ordinary pre-release risk — unaudited, pre-1.0 code is allowed to be wrong. (noble is exonerated.)
+!
+The incident · deployer
+A co-founding Cardano entity shipped its
+own in-house SDK to production
+, replacing an established signer that was working correctly.
+No independent audit — the only path to one (an unfunded Catalyst proposal) was never voted on.
+No produced-signature self-test, no differential test against the outgoing Rust signer.
+We obtained the shipped Android build (10.0.3), extracted the Hermes bundle, and decompiled it: the live
+sign()
+maps
+line-for-line
+onto trantor's published 0.5.2
+curve.ts
+,
+221 of 248
+(89%) of its distinctive identifiers are present, and the app is
+com.emurgo
+— EMURGO's own. (We can't pin the exact shipped version; 0.5.2 is the basis of what ran, and the vulnerable
+sign()
+is unchanged between them.)
+@noble/curves
+is
+not
+at fault — trantor only borrows noble's curve arithmetic; the broken nonce lives in trantor's own hand-written wrapper.
+The cryptographic mistake — a genuine bug in unaudited, pre-1.0 code — is ordinary pre-release risk. The incident was a governance failure: a co-founding Cardano entity promoted its own unvetted in-house signer over an established library that was working, when a single test vector, signature self-check, or diff against the outgoing implementation would each have caught it.
+Read the supply-chain analysis →
+06
+If you used SecondFi / Yoroi
+What this means for you.
+The rule of thumb: did you sign on or after 8 June 2026?
+On-chain measurement shows fingerprinted signatures exist
+only between 8 June 2026 and the patch
+— none before. If your wallet signed any transaction in that window, treat its keys as
+exposed
+. Transactions before that date used the correct, audited signer and are not exposed by this flaw. Re-importing the same recovery phrase into a different wallet does
+not
+help — the exposure is at the key level, not the app level.
+Move to a freshly generated key
+Generate a brand-new key in a known-good wallet and move funds there with a single signature, accepting that the old key is burned. Severely affected balances need coordinated rescue.
+For wallet engineers: the boundary is where keys die
+Tellingly, the core primitive here was a vetted library (noble) — the leak was in the hand-written
+adapter
+that fed it key material and silently dropped half the secret. Using a good library is necessary but not sufficient: the code that marshals key material into it must preserve the whole secret. The fix is not to bolt on a check for this one fingerprint — that catches a single mistake and says nothing about the countless other ways a bespoke key path leaks. Treat key handling and nonce derivation as specialist crypto code, not glue, and prove with test vectors that what the signer receives is exactly what derivation produced.
+Two companion reports
+The
+mechanism advisory
+covers the cryptography, timeline, fund-flow reconstruction, and a reproducible methodology against the public Koios API. The
+supply-chain analysis
+covers how the unaudited SDK reached production, with the decompiled-build attribution.
+Mechanism (PDF)
+Supply chain (PDF)
+Share on X
+Independent analysis by Tibane Labs. Aggregate loss figures are OSINT-sourced; the cryptographic mechanism and deployed-code attribution were independently verified.
+Tibane
+Labs
+Research &amp; development on Solana.
+Building tools for the ecosystem.
+Navigate
+Home
+About
+Lore
+Tokenomics
+Roadmap
+Docs
+Tools
+Staking
+Staking Pools
+Incinerator
+Resources
+General FAQ
+Staking FAQ
+Incinerator FAQ
+Connect
+X / Twitter
+© 2026 Tibane Labs
+Built on Solana

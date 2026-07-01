@@ -1,0 +1,86 @@
+{
+  "purpose": "Independent verification of externally-published claims (Tibane Labs) about SecondFi/Yoroi root cause and supply-chain provenance. Collected by BEACNpool audit maintainers, not by Tibane Labs.",
+  "collected_utc": "2026-07-01T16:10:00Z",
+  "collector": "Claude Code / analyst (BEACNpool fork)",
+  "checks": {
+    "npm_registry_stashers_trantor": {
+      "endpoint": "https://registry.npmjs.org/@stashers.io/trantor",
+      "http_status": 200,
+      "dist_tags_latest": "0.5.2",
+      "only_published_version": [
+        "0.5.2"
+      ],
+      "license": "UNLICENSED",
+      "maintainer_email_domain_note": "resolved from _resolved/_from local path '/var/home/boris/Public/trantor/releases/trantor/_local/package.tgz' in registry metadata",
+      "publish_time": "2025-08-25T10:55:06.085Z",
+      "repository_field": null,
+      "homepage_field": null,
+      "dependencies": {
+        "@noble/ciphers": "^1.3.0",
+        "@noble/curves": "^1.9.7",
+        "@noble/hashes": "^1.8.0",
+        "bech32": "file:bech32",
+        "blockchain": "file:blockchain",
+        "cardano": "file:cardano",
+        "cbor": "file:cbor",
+        "core": "file:core",
+        "cryptography": "file:cryptography",
+        "level": "^10.0.0",
+        "loop": "file:loop",
+        "network": "file:network",
+        "schema": "file:schema",
+        "store": "file:store",
+        "wallet": "file:wallet",
+        "ws": "^8.18.3"
+      },
+      "result": "CONFIRMED: single published version 0.5.2, no repository/homepage field, dependencies include @noble/curves + @noble/hashes + @noble/ciphers as claimed."
+    },
+    "github_repo_stashers-io_trantor": {
+      "endpoint": "https://api.github.com/repos/stashers-io/trantor",
+      "http_status": 404,
+      "result": "CONFIRMED: repository not publicly accessible, consistent with Tibane's claim of a DMCA-driven takedown."
+    },
+    "github_org_stashers": {
+      "endpoint": "https://api.github.com/orgs/stashers",
+      "http_status": 404,
+      "result": "CONFIRMED: org-level path also 404."
+    },
+    "github_user_boris-kolar": {
+      "endpoint": "https://api.github.com/users/boris-kolar",
+      "http_status": 200,
+      "public_repos_visible_via_api": "0 (per Tibane report; account exists but repos_url yields none public)",
+      "result": "Account exists publicly; consistent with Tibane's footprint table. Identity of X account @boris_kolar as same person is NOT independently verified by us or by Tibane (both label it attributed-only)."
+    },
+    "github_dmca_archive_emurgo_takedown": {
+      "endpoint": "https://raw.githubusercontent.com/github/dmca/master/2025/08/2025-08-26-emurgo.md",
+      "http_status": 200,
+      "record_date": "2025-08-26",
+      "filer": "EMURGO Group Pte. Ltd.",
+      "claim_summary": "Filer identifies itself as authorized representative of EMURGO Group Pte. Ltd., 'the rightful owner of proprietary software project Dullahan', names https://github.com/stashers-io/trantor as an unauthorized copy created by 'one of our former employees', requests takedown of the entire repository.",
+      "full_text_saved_to": "evidence/external/github_dmca_emurgo_takedown_2025-08-26.md",
+      "result": "CONFIRMED verbatim against Tibane's supply-chain report \u00a704/\u00a710[15]: EMURGO's own filing names the code 'Dullahan' and asserts sole ownership, disputing only that a former employee published it without authorization."
+    },
+    "github_dmca_archive_counternotice": {
+      "endpoint": "https://raw.githubusercontent.com/github/dmca/master/2025/09/2025-09-09-emurgo-counternotice.md",
+      "http_status": 200,
+      "record_date": "2025-09-09",
+      "claim_summary": "Counter-filer disputes only licensing (claims MIT LICENSE.txt was present in the repo since 2024-06-06 with branch protections preventing unilateral addition), and states some contributed code predated the EMURGO contract. Does NOT dispute that the code is/was EMURGO's Dullahan project.",
+      "full_text_saved_to": "evidence/external/github_dmca_counternotice_2025-09-09.md",
+      "result": "CONFIRMED verbatim against Tibane's supply-chain report \u00a704/\u00a710[16]: dispute is licensing-only, not origin."
+    },
+    "blockfrost_tx_4655145484...ce02203": {
+      "endpoint": "https://cardano-mainnet.blockfrost.io/api/v0/txs/4655145484f7a0f83ddea7c2c52c7ac1f86f9fc7a99ef04f78a7ab177ce02203",
+      "http_status": 200,
+      "block_time_unix": 1781053804,
+      "block_time_utc": "2026-06-10T01:10:04Z",
+      "block_height": 13529852,
+      "result": "CONFIRMED: transaction Tibane cites as the tx that reproduces their predicted-nonce R value exists on Cardano mainnet, dated 2026-06-10 -- inside the claimed 2026-06-08..2026-06-25 exposure window. We did not independently recompute the R-value/nonce math; we only confirmed the transaction's on-chain existence and timestamp."
+    }
+  },
+  "not_independently_verified": [
+    "The Ed25519 nonce-recovery math itself (r = SHA-512(M), single-signature key recovery) -- cryptographically plausible and internally consistent with RFC 8032, but we did not re-derive private scalars ourselves.",
+    "The claimed 221/248 (89%) identifier match between trantor 0.5.2 source and the decompiled SecondFi Android build 10.0.3 -- we did not obtain or decompile the APK ourselves.",
+    "Identity of the X account @boris_kolar as the actual SDK author -- Tibane itself flags this as attributed, not confirmed, and so do we.",
+    "Aggregate victim/loss figures on the tibane.net page -- labeled by Tibane as OSINT-sourced, not chain-verified by them or by us."
+  ]
+}

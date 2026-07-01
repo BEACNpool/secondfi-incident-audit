@@ -14,7 +14,9 @@ The package is structured for public review. It does not publish private credent
 | `DATA_DICTIONARY.md` | Defines expected static datasets, exported tables, common fields, and interpretation notes. |
 | `EVIDENCE_MANIFEST.md` | Inventory of evidence sources, generated artifacts, hashes, and provenance notes. |
 | `CHAIN_OF_CUSTODY.md` | Custody procedures for source data, derived datasets, PDF exports, and public release artifacts. |
+| `EXTERNAL_ANALYSIS_TIBANE.md` | Cross-reference of this repo's fund-flow evidence against Tibane Labs' independent root-cause/supply-chain research (Ed25519 signer defect, EMURGO in-house SDK provenance). |
 | `evidence/source/` | Static source JSON exports used to build the public visualization dataset. |
+| `evidence/external/` | Third-party evidence (PDFs, page snapshots, DMCA records) and this repo's own verification checks against primary sources, supporting `EXTERNAL_ANALYSIS_TIBANE.md`. |
 | `evidence/audit_trail_enrichment.json` | Blockfrost-enriched old-wave tx output and fee-sponsor input records. |
 | `evidence/incident-viz-data.json` | Published normalized dataset consumed by the public visualization and audit PDFs. |
 | `scripts/` | Reproduction scripts for the enrichment and visualization datasets. |

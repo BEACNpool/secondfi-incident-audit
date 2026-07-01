@@ -17,6 +17,9 @@ This package may include the following evidence classes:
 - Known wallet labels, with source and confidence noted.
 - Generated public reports, charts, screenshots, and PDF audit trail outputs.
 - Reproduction notes for scripts, queries, or manual review procedures used to produce derived artifacts.
+- Cross-references to independent third-party root-cause or supply-chain research, clearly marked
+  `public_reference` and separated from this repository's own fund-flow findings (see
+  `EXTERNAL_ANALYSIS_TIBANE.md`).
 
 ## Excluded Scope
 
