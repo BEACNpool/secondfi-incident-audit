@@ -16,8 +16,12 @@ was working correctly. Every wallet that signed a transaction between **2026-06-
 (~06-25) leaked its private key the instant it signed, because the signing nonce was computed from
 public data only. Attackers (and possibly SecondFi's own emergency responders — see §3) exploited
 that starting 2026-06-21 in two distinguishable waves totaling **~141.6M ADA** moved: **12.19M ADA
-confirmed stolen and laundered**, and **~129.44M ADA swept but sitting unmoved and unlaundered**,
-with its intent (theft vs. rescue) still unresolved on-chain as of this writing.
+confirmed stolen and laundered**, and **~129.44M ADA swept, later moved to a new holding stake, and
+not shown as liquidated by the ABCDE live-chain check**,
+with its intent (theft vs. rescue) still unresolved on-chain as of this writing. Live-chain tracing
+adds a tail beyond those waves: **~1.94M ADA more** (including **~0.56M ADA of drained staking
+rewards**) kept flowing into the same central wallet from 2026-06-23 through at least 2026-07-01,
+much of it from wallets not in the originally published source lists.
 
 ## 1. Root cause — the crypto bug
 
@@ -76,27 +80,45 @@ Reconstructed from this repository's own evidence (`evidence/incident-viz-data.j
 
 | Cluster | ADA | Source wallets | Window (UTC) | Status |
 | --- | --- | --- | --- | --- |
-| `old_fee_sponsored` | 12,193,786.56 | 179 stakes | 2026-06-21 20:29 → 06-22 00:35 | **Confirmed theft** — laundered through a large DeFi script venue to collector wallets `$cybermuna`/`$adanerone`/`$555888` |
-| `new_william_direct` | 129,438,847.56 | ~2,570 (upper bound, see note) | 2026-06-23 03:35 → 10:29 | **Contested** — held, unmoved since 2026-06-23 12:20 UTC |
+| `old_fee_sponsored` | 12,193,786.56 | 179 stakes | 2026-06-21 20:29 → 06-22 00:35 | **Confirmed theft** — laundered through a large DeFi script venue to collector wallets `$cybermuna`/`$adanerone`/`$555888`; live-state check shows the collectors were emptied by 06-22 (≈15/30/402 ADA residue) |
+| `new_william_direct` | 129,438,847.56 | ~2,570 (upper bound, see note) | 2026-06-23 03:35 → 10:29 | **Contested** — original holding stake moved large UTxOs on 2026-06-25 to a new destination stake; traced large destination outputs remain unspent in ABCDE |
 
 Key findings:
 
 - **All drains are ordinary key-signed transactions** — zero Plutus redeemers, zero reference inputs.
   This independently confirms the root-cause finding: it is key compromise, not a contract exploit.
+- **Reward accounts were drained too**: 194 of the 3,093 cluster txs include stake-key-signed reward
+  withdrawals (~296k ADA), and the post-burst tail adds ~560k ADA more of withdrawals. Withdrawals
+  require the *stake* key, not the payment key — consistent with full seed-level exposure, and a
+  warning that input-only tracing undercounts what moved (withdrawal ADA enters a tx without
+  appearing as a UTxO input). Victim exposure includes accumulated staking rewards.
+- **The sweep did not stop at the burst window**: the central wallet kept receiving for at least
+  eight more days — 1,134 txs, ~1.94M ADA, 2026-06-23 12:30 → 2026-07-01 — from 1,028 distinct
+  counterparty stakes, 460 of which are **not** in the published source lists. The published lists
+  are a snapshot of the burst, not the full affected set. It also swept **native assets**: ~4,919
+  distinct tokens/NFTs sit in the central wallet's live UTxOs, so ADA-only accounting is incomplete.
 - **Victims are established, multi-year, actively-transacting wallets with no shared on-chain factor**
   (no common pool/dApp/token) — the compromise vector is off-chain (the app's key handling), invisible
   from chain data alone.
-- The `new_william_direct` source count (~2,570) **overstates victims** — tracing shows
-  related-wallet clusters, transit wallets, and dust wallets inflating the count; treat it as an upper
-  bound, not a victim tally.
+- The `new_william_direct` source count (~2,570) **overstates victims for the burst window** —
+  tracing shows related-wallet clusters, transit wallets, and dust wallets inflating the count;
+  treat it as an upper bound, not a victim tally. At the same time, the *overall* affected-wallet
+  set is **larger than the published lists** because of the post-burst tail above. These two
+  statements are not in tension: the burst count over-splits entities, and the lists under-cover
+  time.
 - Both clusters' operational wallets were **first funded from the same wallet**, a Binance-tagged
   CEX hot/omnibus address — not proof of a single operator, but two specific timestamped withdrawals
   an exchange could resolve via KYC.
-- The contested cluster's 129.43M ADA **has not been laundered, swapped, bridged, or sent to an
-  exchange** — consistent with, but not proof of, a hold-for-return rescue posture (SecondFi's public
-  claim). No named custodian transfer has been observed on-chain yet. **On-chain, a malicious sweep
-  and a protective sweep are mechanically identical**; only a verifiable transfer to a named custodian
-  resolves this.
+- The contested cluster's 129.43M ADA **moved after the original static snapshot**: ABCDE shows the
+  original holding stake spent the large UTxOs on 2026-06-25 to a new destination stake
+  `stake1u9yayc8l3ljkz6kqv87h8l8q4l0nl6sg62l4w300vwn4x9geuqdst` — six txs, inputs exclusively from
+  the original holding stake, all landing at one address that holds `129,429,998.977070 ADA` across
+  six still-unspent UTxOs at the checked tip (`tx_in` anti-join; a naive stake-level figure of
+  `129,430,008.977070` includes 10 ADA of unrelated third-party dust). The destination stake has
+  never been registered or delegated — the funds sit unstaked. This is consistent with, but not
+  proof of, a hold-for-return rescue posture (SecondFi's public claim). No named custodian transfer
+  has been observed on-chain yet. **On-chain, a malicious sweep and a protective sweep are
+  mechanically identical**; only a verifiable transfer to a named custodian resolves this.
 - Structural note: because the vulnerability lets anyone compute an exposed wallet's key from public
   chain data, SecondFi itself had the same technical ability as an attacker to race and sweep at-risk
   wallets first. That does not prove the rescue claim, but it explains how a legitimate

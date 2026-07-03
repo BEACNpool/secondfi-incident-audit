@@ -17,7 +17,10 @@ The package is structured for public review. It does not publish private credent
 | `CHAIN_OF_CUSTODY.md` | Custody procedures for source data, derived datasets, PDF exports, and public release artifacts. |
 | `CONTESTED_CLUSTER.md` | Records that the intent of the ~129M ADA `new_william_direct` sweep (theft vs. protective rescue) is unresolved from chain data alone. |
 | `SUPPLEMENTAL_FINDINGS.md` | Independent cross-validation: shared funding origin between clusters, key-compromise mechanism confirmation, source-count caveats. |
+| `ABCDE_WAREHOUSE_FINDINGS.md` | Live-chain ABCDE warehouse findings: reproducible load path, mechanism validation, shared funding-origin receipts, June 25 custody-movement update, and a follow-up pass (no staking on principal wallets, third-party dust-tagging, ~1.94M ADA post-burst inflow tail, reward-account draining, collector live-state receipts). |
 | `EXTERNAL_ANALYSIS_TIBANE.md` | Cross-reference of this repo's fund-flow evidence against Tibane Labs' independent root-cause/supply-chain research (Ed25519 signer defect, EMURGO in-house SDK provenance). |
+| `sql/` | ABCDE warehouse loader and analysis SQL for reproducing live-chain checks from the checked-in evidence. |
+| `evidence/abcde/` | Machine-readable CSV receipts for the ABCDE follow-up findings (June 25 custody movement, dust-tagging, post-burst inflow tail, reward-withdrawal draining), with export chain tip and regeneration steps. |
 | `evidence/source/` | Static source JSON exports used to build the public visualization dataset. |
 | `evidence/external/` | Third-party evidence (PDFs, page snapshots, DMCA records) and this repo's own verification checks against primary sources, supporting `EXTERNAL_ANALYSIS_TIBANE.md`. |
 | `evidence/audit_trail_enrichment.json` | Blockfrost-enriched old-wave tx output and fee-sponsor input records. |

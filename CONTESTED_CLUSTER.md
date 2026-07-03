@@ -25,10 +25,23 @@ consolidation into one wallet). The chain shows *that* funds moved and *where* �
 ## What is verifiable on-chain (FACT, point-in-time)
 
 - ~129.43M ADA is consolidated in the single holding wallet `addr1qxd39k4p…`.
-- It has **not** been laundered, swapped, bridged, or sent to any exchange.
-- It has been **unmoved since 2026-06-23 12:20:32 UTC** (re-verified ~24h+ later).
-- This **held-and-unlaundered** behaviour is *consistent with a hold/custody posture* and is *not*
-  the behaviour of a typical liquidating thief — but it does not, by itself, prove a rescue.
+- As originally observed, it had **not** been laundered, swapped, bridged, or sent to any exchange.
+- **Superseding live-chain update:** ABCDE warehouse tracing (chain tip block `13628316`,
+  `2026-07-03 03:35:18 UTC`) shows the original holding stake moved the large UTxOs on `2026-06-25`
+  to a new destination stake `stake1u9yayc8l3ljkz6kqv87h8l8q4l0nl6sg62l4w300vwn4x9geuqdst` — all six
+  large txs draw inputs exclusively from the original holding stake, and all six outputs land at the
+  single address `addr1qyjfzgs74e90e7yk5yw7gey0ct35su6qmjsufpjc9w9t0ljf6fs0lrl9v94vqc0aw07wpt7l8l4q354l2az77ca82v2svfvlhl`,
+  which now holds `129,429,998.977070 ADA` across six unspent UTxOs. (Naive stake-level queries show
+  `129,430,008.977070` — the extra `10 ADA` is unrelated third-party dust; see
+  `ABCDE_WAREHOUSE_FINDINGS.md` Findings 7-8.) The original holding stake retains only
+  `1.001412 ADA` of its own change.
+- Neither the original holding stake nor the destination stake (nor `$william-qa`) has ever been
+  registered or delegated — the 129.43M sits unstaked, earning nothing.
+- `$william-qa` has had **zero outgoing spends since 2026-06-23 12:20:32 UTC**, but kept *receiving*
+  a drain/sweep tail (~1.94M ADA more, 1,134 txs, through 2026-07-01, including ~560k ADA of
+  reward-account withdrawals). See `ABCDE_WAREHOUSE_FINDINGS.md` Findings 9-10.
+- This **moved-but-still-unliquidated** behaviour is *consistent with a hold/custody posture* and is
+  *not* the behaviour of a typical liquidating thief — but it does not, by itself, prove a rescue.
 
 ## What is stated but not yet on-chain-verifiable (per SecondFi)
 

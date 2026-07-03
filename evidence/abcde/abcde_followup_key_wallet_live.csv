@@ -1,0 +1,9 @@
+label,role,stake,live_utxos,live_ada,last_inbound_utc,last_outgoing_utc
+dust_tagger,unattributed_third_party,stake1u83s2rupm0cq9p2kdkauewugql9zuf3mvc32v07n35zwf0qxfwhlh,3,19.3203080000000000,2026-06-25 12:26:09,2026-06-25 12:26:09
+june25_destination,contested_cluster_destination,stake1u9yayc8l3ljkz6kqv87h8l8q4l0nl6sg62l4w300vwn4x9geuqdst,7,129430008.97707000,2026-06-25 12:21:29,
+old_collector_555888,old_wave_recipient,stake1ux9aps8h3zwqpv7802zkyq9kmz85zrfsr90fns2mdtlzjtcm7jj8p,6,401.5239350000000000,2026-06-22 13:02:49,2026-06-22 11:53:42
+old_collector_adanerone,old_wave_recipient,stake1uywaus7jtqca6d2mek63ql28rrxc9fdxcj8xvrs3m54tvrq4uaarv,5,29.9136510000000000,2026-06-22 00:23:33,2026-06-22 00:23:33
+old_collector_cybermuna,old_wave_recipient,stake1u9fg8znea6sqgne8zusu6rl9hwkwt7te2xn3j4pexdjf03g4kw9uq,1,14.9131450000000000,2026-06-22 01:54:39,2026-06-22 01:54:39
+old_fee_sponsor,fee_sponsor,stake1u9hl8rn3r9vnj45pqpcn8auuf5q05rltqzcwpmm2nme0zasf40ymg,78,1175.2459430000000000,2026-06-22 00:35:49,2026-06-22 00:35:49
+original_129m_holding,contested_cluster_holding,stake1uxd39k4peszxlf0x59e88hngpe5u9882y2lyhdzazsq4kfg7pxzgy,2,11.0014120000000000,2026-06-25 12:23:23,2026-06-25 11:22:30
+william_qa_central,central_collector,stake1uy2n0yvqkgjh8wpe0fl9wm82mxhk5dk09yp2ez4ykte4zcgg2e9m5,3408,1947429.441141000000,2026-07-01 01:12:10,2026-06-23 12:20:32
