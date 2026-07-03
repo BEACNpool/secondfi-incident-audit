@@ -127,6 +127,12 @@ Key findings:
   addresses measured in the confirmed-theft cluster in this repository's own data — this reconciliation
   remains open.
 
+*(Founding-entity accountability — EMURGO's SDK ownership, the audited-open →
+unaudited-closed signer regression, its public refund/custodian commitments, and
+the gap between those statements and the chain — is assessed separately in
+`EMURGO_ACCOUNTABILITY.md`, with findings and a labeled accountability argument
+kept distinct.)*
+
 ## 4. Confidence and attribution
 
 Per this repository's confidence taxonomy (`AUDIT_SCOPE.md`):
