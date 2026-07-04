@@ -42,12 +42,21 @@ reward-account draining into one stake-keyed master table
 asset counts. Bounds in §4. This is the definitive "who lost value into the
 incident" set and it already expands well beyond the originally published lists.
 
-### Lane B — exposure census (Ring 2) — specified, not yet built
+### Lane B — exposure census (Ring 2) — primitive validated, census not yet run
 For each transaction in the exposure window, extract every vkey witness and run
 the detector `SHA-512(M)·B == R`, where `M` is the transaction body hash (= the
 tx id) and `R` is the first 32 bytes of the 64-byte signature. A match proves the
 signing key was exposed. **Every exposed stake/address that trips the detector is
 a Ring 2 member.**
+
+The detector is implemented and **validated** in `scripts/exposure_detector.py`
+(self-contained Ed25519, exposure-only, no key recovery). Against known cases
+(`evidence/lane_b/`): the Tibane-cited in-window tx
+`4655145484f7a0f83ddea7c2c52c7ac1f86f9fc7a99ef04f78a7ab177ce02203` trips
+`exposed = true` on both witnesses (which share an identical `R` — the ~2⁻²⁵⁵
+message-only-nonce collision), and a 2025 pre-defect control returns `false`. What
+remains is running it at scale over a CBOR source (db-sync has no witnesses), under
+the §5 dual-use rule.
 
 Hard constraints for Lane B:
 

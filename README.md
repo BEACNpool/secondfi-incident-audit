@@ -25,9 +25,10 @@ The package is structured for public review. It does not publish private credent
 | `evidence/abcde/` | Machine-readable CSV receipts for the ABCDE follow-up findings (June 25 custody movement, dust-tagging, post-burst inflow tail, reward-withdrawal draining), with export chain tip and regeneration steps. |
 | `evidence/source/` | Static source JSON exports used to build the public visualization dataset. |
 | `evidence/external/` | Third-party evidence (PDFs, page snapshots, DMCA records) and this repo's own verification checks against primary sources, supporting `EXTERNAL_ANALYSIS_TIBANE.md`. |
+| `evidence/lane_b/` | Key-exposure detector validation bundle (raw tx CBOR inputs, detector output) proving the Ring 2 primitive works; exposure-only, no key recovery. |
 | `evidence/audit_trail_enrichment.json` | Blockfrost-enriched old-wave tx output and fee-sponsor input records. |
 | `evidence/incident-viz-data.json` | Published normalized dataset consumed by the public visualization and audit PDFs. |
-| `scripts/` | Reproduction scripts for the enrichment and visualization datasets. |
+| `scripts/` | Reproduction scripts for the enrichment and visualization datasets, plus `exposure_detector.py` (the validated Ring 2 key-exposure detector). |
 | `site/src/` | Public audit/PDF browser code used by the live visualization. |
 | `site/data/` | Site-ready copy of the published normalized dataset. |
 | `verification/` | Browser and PDF download verification harness. |
