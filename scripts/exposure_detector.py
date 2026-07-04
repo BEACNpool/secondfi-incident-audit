@@ -19,6 +19,11 @@ reporting its presence. See BLAST_RADIUS_METHODOLOGY.md sec. 3 and 5.
 Input is raw CBOR (offline, reproducible, no API key in this script). Fetch the
 CBOR separately, e.g. Blockfrost /txs/{hash}/cbor, and pass it in.
 
+Optional dependency: if `cbor2` is importable it is used to parse the witness set
+(handles all Conway transaction shapes, incl. set tags). Without it, a built-in
+minimal decoder is used, which does not handle every structure and may raise on
+some transactions -- install cbor2 for full coverage.
+
 Usage:
     python3 exposure_detector.py <tx_id_hex> <tx_cbor_hex>
     python3 exposure_detector.py <tx_id_hex> --cbor-file path/to/raw.hex
@@ -154,12 +159,33 @@ def _key(k):
     return k if isinstance(k, (int, str)) else k.hex() if isinstance(k, (bytes, bytearray)) else k
 
 
+try:
+    import cbor2 as _cbor2   # optional; handles all Conway tx shapes (set tags etc.)
+except ImportError:
+    _cbor2 = None
+
+
+def _unwrap(x):
+    # cbor2 returns CBORTag for set tag 258 etc.; unwrap to the underlying value
+    return x.value if hasattr(x, "value") and not isinstance(x, (bytes, bytearray)) else x
+
+
 def vkey_witnesses(tx_cbor: bytes):
-    """Return list of (vkey_hex, sig_hex) from the tx witness set (map key 0)."""
-    c = _Cur(tx_cbor)
-    top = _rd(c)                    # [body, witness_set, is_valid?, aux?]
-    wset = top[1]
-    vks = wset.get(0, []) if isinstance(wset, dict) else []
+    """Return list of (vkey_bytes, sig_bytes) from the tx witness set (map key 0).
+
+    Uses cbor2 when available (recommended — parses all Conway transaction shapes);
+    otherwise falls back to the built-in minimal decoder, which does not handle
+    every tag/set structure and may raise on some transactions.
+    """
+    if _cbor2 is not None:
+        top = _cbor2.loads(tx_cbor)     # [body, witness_set, is_valid?, aux?]
+        wset = top[1]
+        vks = _unwrap(wset.get(0, [])) if isinstance(wset, dict) else []
+    else:
+        c = _Cur(tx_cbor)
+        top = _rd(c)
+        wset = top[1]
+        vks = wset.get(0, []) if isinstance(wset, dict) else []
     out = []
     for w in vks:
         vk, sig = w[0], w[1]

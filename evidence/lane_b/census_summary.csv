@@ -1,0 +1,7 @@
+ring_flow,in_published_source_lists,candidate_stakes,txs_checked,confirmed_exposed,exposure_rate_pct
+mixed,t,27,27,14,51.85
+ring0_theft,f,32,32,0,0.0
+ring0_theft,t,147,147,136,92.52
+ring1_contested,f,448,448,370,82.59
+ring1_contested,t,2411,2409,2068,85.84
+TOTAL,,3065,3063,2588,84.49

@@ -50,13 +50,23 @@ signing key was exposed. **Every exposed stake/address that trips the detector i
 a Ring 2 member.**
 
 The detector is implemented and **validated** in `scripts/exposure_detector.py`
-(self-contained Ed25519, exposure-only, no key recovery). Against known cases
-(`evidence/lane_b/`): the Tibane-cited in-window tx
+(self-contained Ed25519, exposure-only, no key recovery; uses `cbor2` when present
+for full Conway coverage). Against known cases (`evidence/lane_b/`): the
+Tibane-cited in-window tx
 `4655145484f7a0f83ddea7c2c52c7ac1f86f9fc7a99ef04f78a7ab177ce02203` trips
 `exposed = true` on both witnesses (which share an identical `R` — the ~2⁻²⁵⁵
-message-only-nonce collision), and a 2025 pre-defect control returns `false`. What
-remains is running it at scale over a CBOR source (db-sync has no witnesses), under
-the §5 dual-use rule.
+message-only-nonce collision), and a 2025 pre-defect control returns `false`.
+
+**Scoped census run (first pass).** Applied to one representative in-window,
+self-signed, non-drain transaction per blast-radius stake (candidate SQL
+`sql/abcde_secondfi_exposure_candidates.sql`; fetch `scripts/fetch_tx_cbor.sh`;
+aggregate `scripts/run_exposure_census.py`): **2,588 of 3,063 checked stakes are
+cryptographically confirmed exposed (84.5%; a lower bound)**. The transit stakes
+flagged in Lane A return 0% exposed; 82.6% of the newly-captured contested-cluster
+stakes confirm exposed. Public aggregate `evidence/lane_b/census_summary.csv`; the
+row-level list is withheld per §5 (custody hash recorded in `evidence/lane_b/README.md`).
+A full mainnet-window census (every wallet, not just blast-radius members) remains
+the stretch goal and needs a dedicated CBOR source, since db-sync has no witnesses.
 
 Hard constraints for Lane B:
 

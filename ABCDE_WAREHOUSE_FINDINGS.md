@@ -317,6 +317,31 @@ bounds, the Lane B exposure-census plan, and the dual-use handling rule
 Caveat: the money figure is sound and bounded; the stake **count** is an upper
 bound (includes transit/related wallets).
 
+## Finding 13: Cryptographic Exposure Confirmed — 2,588 Wallets Proven Key-Exposed
+
+FACT (Blockfrost tx CBOR, 2026-07-04; candidate selection at ABCDE tip
+`13632859`; `scripts/exposure_detector.py`, `evidence/lane_b/census_summary.csv`):
+running the exposure detector `SHA-512(M)·B == R` over one representative
+in-window, self-signed, non-drain transaction per blast-radius stake confirms
+**2,588 stakes are cryptographically key-exposed** — their own signature proves
+the private key was recoverable from public chain data (84.5% of the 3,063
+checked; a **lower bound**, one tx per stake).
+
+This is the first Ring 2 (exposure) evidence in the package, distinct from the
+flow rings: it proves *key compromise per wallet by cryptography*, not by fund
+movement. Two cross-checks:
+
+- The 32 `ring0` stakes not in the published lists (flagged as transit in Finding
+  12) return **0% exposed**; real theft victims in that ring return **92.5%** —
+  exposure separates victims from pass-through wallets.
+- **82.6%** of the newly-captured (not-in-published-lists) contested-cluster
+  stakes are confirmed exposed — the blast radius genuinely extends past the
+  originally published set.
+
+Per `BLAST_RADIUS_METHODOLOGY.md` §5 the detector is exposure-only (no key
+recovery) and the row-level exposed-wallet list is `withheld` (dual-use); only
+the aggregate is published. Method/validation: `evidence/lane_b/`.
+
 ## Reproduction
 
 - Loader: `sql/abcde_secondfi_load.sql` (evidence JSON → `secondfi.audit_*`).
@@ -324,6 +349,9 @@ bound (includes transit/related wallets).
 - Follow-up views: `sql/abcde_secondfi_followup.sql` (Findings 6-11).
 - Blast-radius census: `sql/abcde_secondfi_blast_radius.sql` (Finding 12);
   doctrine in `BLAST_RADIUS_METHODOLOGY.md`.
+- Exposure census (Finding 13): `sql/abcde_secondfi_exposure_candidates.sql` →
+  `scripts/fetch_tx_cbor.sh` → `scripts/run_exposure_census.py` (detector
+  `scripts/exposure_detector.py`); validation + results in `evidence/lane_b/`.
 - CSV receipts + regeneration steps: `evidence/abcde/README.md`.
 - Live-chain caveat: re-running at a later tip can legitimately change `live`
   flags and balances; every export records the tip it was taken at.
