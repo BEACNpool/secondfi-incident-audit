@@ -42,3 +42,20 @@ change `live` flags and balances; compare against the tip recorded above.
 | `abcde_followup_william_live_by_day.csv` | `audit_followup_william_live_by_day` | `$william-qa` live UTxOs bucketed by creation day. |
 | `abcde_followup_postburst_inflow_txs.csv` | `audit_followup_postburst_inflow_txs` | Per-tx accounting of the 1,134-tx post-burst inflow tail to `$william-qa` (2026-06-23 12:30 UTC → tip): ADA delivered, UTxO-input ADA split listed/unlisted/no-stake, reward-withdrawal ADA split listed/unlisted. |
 | `abcde_followup_cluster_withdrawals.csv` | `audit_followup_cluster_withdrawals` | Reward-account withdrawal totals inside the 3,093 main-cluster txs. |
+
+## Lane A blast-radius census (`sql/abcde_secondfi_blast_radius.sql`)
+
+Flow blast radius (Rings 0/1), built at a later tip — block `13632859`, slot
+`191573590`, `2026-07-04 04:38:01 UTC` (recorded in `abcde_blast_radius_tip.csv`).
+See `BLAST_RADIUS_METHODOLOGY.md` for the ring model, bounds, and dual-use
+posture. `total_into_incident_ada` is apportioned by each source's input share of
+the sink receipt (bounded by what the sink actually received — not gross tx
+inputs); the stake **count** is an upper bound (includes transit/related wallets).
+
+| File | View/Table | Contents |
+| --- | --- | --- |
+| `abcde_blast_radius_tip.csv` | — | Chain tip at census export. |
+| `abcde_blast_radius_summary.csv` | `audit_blast_radius_summary` | Per-ring rollup: stakes, listed vs not, ADA into incident, reward-withdrawal ADA, current live ADA, current distinct assets. |
+| `abcde_blast_radius_coverage.csv` | `audit_blast_radius_coverage` | Coverage delta: published stake source IDs vs total census stakes vs newly captured. |
+| `abcde_blast_radius_stakes.csv` | `audit_blast_radius_stakes` | Full stake-keyed master census (one row per affected stake): list membership, waves fed, apportioned ADA into incident, reward withdrawals, current live ADA/UTxOs/assets, first/last activity, flow-ring. |
+| `abcde_blast_downstream.csv` | `audit_blast_downstream` | Downstream disposition of sink funds from the known-flow evidence (label-and-stop; no venue pass-through). |

@@ -296,11 +296,34 @@ outputs on chain, first seen `2024-08-27 06:12:15 UTC`, and was still active at
 source" characterization in Finding 2 (and therefore also the caveat that
 shared use of it is a lead, not identity proof).
 
+## Finding 12: Unified Blast-Radius Census — 3,224 Affected Stakes, 502 Beyond The Published Lists
+
+FACT (ABCDE tip block `13632859`, `2026-07-04 04:38 UTC`;
+`sql/abcde_secondfi_blast_radius.sql`, `evidence/abcde/abcde_blast_radius_*.csv`):
+unifying the published burst source lists, the post-burst inflow tail, and
+reward-account draining into one stake-keyed census yields **3,224 affected
+stakes**, of which **502 are not in the originally published source lists**, with
+**144,368,844.6 ADA** attributed into the incident (apportioned by each source's
+input share of the sink receipt). Roughly **856,164 ADA** of that is drained
+staking rewards.
+
+This is the **flow** blast radius (Rings 0/1). It is **not** the full exposure
+set: the true blast radius is every wallet whose key was exposed by a vulnerable
+signature (Ring 2), which requires transaction witnesses this db-sync warehouse
+does not store. See `BLAST_RADIUS_METHODOLOGY.md` for the ring model, the trace
+bounds, the Lane B exposure-census plan, and the dual-use handling rule
+(aggregates public, raw exposed-wallet list withheld, no key recovery ever).
+
+Caveat: the money figure is sound and bounded; the stake **count** is an upper
+bound (includes transit/related wallets).
+
 ## Reproduction
 
 - Loader: `sql/abcde_secondfi_load.sql` (evidence JSON → `secondfi.audit_*`).
 - Base views: `sql/abcde_secondfi_analysis.sql` (Findings 1-5).
 - Follow-up views: `sql/abcde_secondfi_followup.sql` (Findings 6-11).
+- Blast-radius census: `sql/abcde_secondfi_blast_radius.sql` (Finding 12);
+  doctrine in `BLAST_RADIUS_METHODOLOGY.md`.
 - CSV receipts + regeneration steps: `evidence/abcde/README.md`.
 - Live-chain caveat: re-running at a later tip can legitimately change `live`
   flags and balances; every export records the tip it was taken at.
